@@ -7,9 +7,9 @@ function Get-SteamAppsPath {
 function Get-ACFFilesFromLibrary {
     param($libraryFolderPath)
 
-    $steamAppsPath = Join-Path $libraryFolderPath "steamapps"
-    if (Test-Path $steamAppsPath) {
-        return Get-ChildItem -Path $steamAppsPath -Filter "*.acf"
+    $librarySteamPath = Join-Path $libraryFolderPath "steamapps"
+    if (Test-Path $librarySteamPath) {
+        return Get-ChildItem -Path $librarySteamPath -Filter "*.acf"
     }
 
     return @()
@@ -47,10 +47,10 @@ function Get-InstallScripts {
 }
 
 function Get-HasRunKeys {
-    param($installScripts, $steamAppsPath, $installdir)
+    param($installScripts, $appPath, $installdir)
     $hasRunKeys = @{}
     foreach ($installScript in $installScripts) {
-        $installScriptPath = Join-Path $steamAppsPath -ChildPath "common\$installdir\$installScript"
+        $installScriptPath = Join-Path "${appPath}steamapps" -ChildPath "common\$installdir\$installScript"
         if (!(Test-Path $installScriptPath)) { continue }
 
         $installScriptContent = Get-Content $installScriptPath -Raw
@@ -69,7 +69,8 @@ function Get-GameDataFromAcfFile {
     $name = Get-GameName -content $content
     $installdir = Get-InstallDir -content $content
     $installScripts = Get-InstallScripts -content $content
-    $hasRunKeys = Get-HasRunKeys -installScripts $installScripts -steamAppsPath $steamAppsPath -installdir $installdir
+    $appPath = $file.FullName.Split('steamapps', 2)[0]
+    $hasRunKeys = Get-HasRunKeys -installScripts $installScripts -appPath $appPath -installdir $installdir
     return New-Object PSObject -Property @{
         Name                = $name
         InstallScripts      = $installScripts
